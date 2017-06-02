@@ -5,3 +5,4 @@ FJava.iml
 .settings
 .classpath
 .eclipse
+out/production

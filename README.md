@@ -53,6 +53,17 @@ public class TestDriver {
 }
 ```
 
+Console output:
+```
+Hello
+The value of the variable: Hello
+variable = bye
+The value of the variable: bye
+Fetching val
+The value of the variable: null
+Done testing
+```
+
 ### Variable
 The `variable(s)` in FJava are **active**. 
 
