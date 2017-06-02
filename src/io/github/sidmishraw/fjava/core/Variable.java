@@ -53,6 +53,31 @@ public class Variable<T> implements Runnable {
 	}
 
 	/**
+	 * A wrapper used for preventing blocking of the get message queue.
+	 *
+	 * @param <T>
+	 */
+	private class WrapperObject<T> {
+
+		private T value;
+
+		/**
+		 * Initialization is allowed and is not viewed as assignment
+		 *
+		 * @param value
+		 */
+		public WrapperObject(T value) {
+
+			this.value = value;
+		}
+
+		public T getValue() {
+
+			return value;
+		}
+	}
+
+	/**
 	 * The Message is the message that is used by the variable to execute the operations.
 	 */
 	private static class Message {
@@ -95,6 +120,8 @@ public class Variable<T> implements Runnable {
 		Thread myThread = new Thread(this);
 		myThread.start();
 
+		// System.out.println("Thread: " + myThread.getId());
+
 		this.set(initialValue);
 	}
 
@@ -135,13 +162,16 @@ public class Variable<T> implements Runnable {
 
 		try {
 
-			BlockingQueue<T> getterQueue = new LinkedBlockingQueue<>();
+			// using a message queue to fetch the value from the control loop
+			// since can't return out of the control loop for a get
+			BlockingQueue<WrapperObject<T>> getterQueue = new LinkedBlockingQueue<>();
 
 			// sets the msg for getting the value from the control loop
 			this.msgQueue.put(new Message(Opcode.GET, getterQueue));
 
 			// going to block till it gets the value from the controlLoop
-			return getterQueue.take();
+			// it will get the wrapped object because message queue will not take null as input
+			return getterQueue.take().getValue();
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -210,7 +240,15 @@ public class Variable<T> implements Runnable {
 					// using another message queue for fetching the value
 					// from the controlLoop. This is because, the controlLoop
 					// cannot break(return for a get())
-					((LinkedBlockingQueue) tmp.value()).put(value);
+					if (null != value) {
+
+						((LinkedBlockingQueue<WrapperObject<T>>) tmp.value()).put(new
+								WrapperObject<>(value));
+					} else {
+
+						((LinkedBlockingQueue<WrapperObject<T>>) tmp.value()).put(new
+								WrapperObject<>(null));
+					}
 
 					controlLoop(value);
 
