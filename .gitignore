@@ -6,3 +6,5 @@ FJava.iml
 .classpath
 .eclipse
 out/production
+/bin/
+.project
